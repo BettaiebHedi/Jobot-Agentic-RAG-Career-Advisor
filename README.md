@@ -56,22 +56,17 @@ Start services with GPU support (recommended)
 docker compose -f docker/docker-compose.yml up --build -d  
 If your Docker requires nvidia runtime for GPU containers, ensure docker compose honors deploy / runtime options in the compose file and nvidia-container-toolkit is installed.  
 
-Initialize Milvus collections & embeddings (run the script once)  
-
-docker compose exec backend python milvus/milvus_setup.py  
-# or run it inside the backend container:  
-# docker compose exec backend python -m milvus.milvus_setup  
-
-Open Chainlit UI  
+## Open Chainlit UI  
 The Chainlit UI should be exposed (e.g. http://localhost:8000 or the port specified in compose).  
 
 Use the web UI to upload CVs, chat with agents, and test job matching.  
 
-Stopping  
+## Stopping  
 docker compose down  
 
+---  
 
-Quick local dev (without Docker) — developer mode  
+## Quick local dev (without Docker) — developer mode  
 If you prefer local dev (not recommended for production GPU inference):  
 
 Create virtualenv & install  
@@ -84,19 +79,23 @@ Start the Chainlit app
 cd chainlit  
 chainlit run app.py -w  
 
+---  
 
-Hybrid search & reranker (how it works)  
+# Hybrid search & reranker (how it works)  
 Sparse retrieval: (BM25 or simple keyword filter) quickly narrows candidate docs.  
 Dense retrieval: embed query + documents, query Milvus for nearest vectors.  
 Hybrid scoring: combine sparse and dense scores (weighted sum) to surface candidates.  
 Reranker: small cross-encoder or lightweight reranker re-scores top-K candidates to refine final context passed to LLM.  
 Context engineering: orchestrator merges top-ranked passages and crafts the prompt for the targeted agent.  
 
+---  
 
-License  
+# License  
 This repository is released under the MIT License. See LICENSE.  
 
-Author  
+---  
+
+# Author  
 Mohamed el hedi Bettaieb — AI Engineer  
 Siwar Jlassi — AI Engineer  
 Sirine Nmiri — AI Engineer  
