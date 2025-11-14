@@ -1,0 +1,17 @@
+/* Change background color of the app */
+/* Customize user message bubbles */
+.message.user {
+  background-color: #e0f7fa !important;
+  color: #004d40 !important;
+}
+
+/* Customize assistant message bubbles */
+.message.assistant {
+  background-color: #fff3e0 !important;
+  color: #e65100 !important;
+}
+
+/* Change font family */
+* {
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+}

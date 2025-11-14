@@ -1,0 +1,156 @@
+version: '3.8'
+
+services:
+  etcd:
+    container_name: milvus-etcd-neural
+    image: quay.io/coreos/etcd:v3.5.18
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/etcd:/etcd
+    command: etcd -advertise-client-urls=http://etcd:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio:
+    container_name: milvus-minio-neural
+    image: minio/minio:RELEASE.2024-05-28T17-19-04Z
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/minio:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  standalone:
+    container_name: milvus-standalone-neural
+    image: milvusdb/milvus:v2.5.14
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      MINIO_REGION: us-east-1
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/milvus:/var/lib/milvus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 3
+    ports:
+      - "19540:19530"
+      - "9092:9091"
+    depends_on:
+      - "etcd"
+      - "minio"
+
+  summarizer:
+    image: public.ecr.aws/q9t5s3a7/vllm-cpu-release-repo:latest
+    container_name: summarizer-service
+    restart: always  
+    ipc: host
+    ports:
+      - "8004:8000"   
+    volumes:
+      - ./models:/models
+    environment:    
+      VLLM_USE_V1: 1
+      VLLM_CPU_KVCACHE_SPACE: 4  
+      VLLM_CPU_OMP_THREADS_BIND: auto   
+      VLLM_LOGGING_LEVEL: DEBUG   
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 60s
+    command: > 
+      --model /models/phi-3-mini-4k-instruct 
+      --max-model-len 2047
+      --dtype bfloat16
+      --host 0.0.0.0
+      --disable-sliding-window
+      --max-num-seqs 2
+      --port 8000
+
+  vllm:
+    image: vllm/vllm-openai:v0.10.1.1
+    container_name: vllm-service
+    restart: always
+    gpus: "all"  
+    # runtime: nvidia               
+    ipc: host  
+    ports:
+      - "8003:8000"
+    volumes:
+      - ./models:/models
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 60s
+    command: > 
+      --model /models/llama3.1-8b    
+      --max-model-len 16384
+      --dtype float16   
+      --host 0.0.0.0
+      --gpu-memory-utilization 0.9
+      --max-num-seqs 4
+      --port 8000
+      --tensor-parallel-size 1
+    # --model /models/llama3.1-8b         /models/mistral-7b-instruct
+    # --max-model-len 16384                8192
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+
+  chainlit-app:
+    build: .
+    container_name: chainlit_app-neural
+    ports:
+      - "8010:8000"
+    volumes:
+      - .:/app
+      - ./data:/app/data  
+    working_dir: /app
+    depends_on:
+      summarizer:
+        condition: service_healthy
+      vllm:
+        condition: service_healthy
+      standalone:
+        condition: service_healthy
+    command: chainlit run app.py --host 0.0.0.0 --port 8000
+    environment:
+      MILVUS_HOST: standalone
+      MILVUS_PORT: 19530
+      MILVUS_USER: admin
+      MILVUS_PASSWORD: admin123
+      VLLM_URL: "http://vllm-service:8000"
+      Summarizer_url: "http://summarizer-service:8000"
+
+volumes:
+  milvus-data:

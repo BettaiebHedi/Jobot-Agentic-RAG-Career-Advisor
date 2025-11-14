@@ -1,0 +1,29 @@
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore Chainlit generated files
+.chainlit/
+
+# Ignore temporary / hidden system files
+.files/
+
+# Ignore large or private models
+models/
+
+# Ignore Docker volumes
+volumes/
+
+# Ignore docker & container noise
+.dockerignore
+
+# Ignore audio outputs
+response.mp3
+
+# Additional recommended ignores
+.env
+*.log
+*.sqlite3
+*.db
+*.DS_Store
+.env.*
