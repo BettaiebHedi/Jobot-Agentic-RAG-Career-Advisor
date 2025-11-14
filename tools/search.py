@@ -21,7 +21,7 @@ def is_valid_domain(url: str) -> bool:
     return not any(bad in url for bad in blacklist)
 
 
-os.environ["TAVILY_API_KEY"] = "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"
+os.environ["TAVILY_API_KEY"] = "tvly_TOKEN"
 tavily = TavilySearchResults()
 
 
