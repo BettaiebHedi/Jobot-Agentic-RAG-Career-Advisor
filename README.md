@@ -1,23 +1,23 @@
-# Jobot — Agentic RAG Career Assistant 
+# Jobot — Agentic RAG Career Assistant  
 
 **Jobot** is an agentic, Retrieval-Augmented Generation (RAG) career assistant developed and deployed during my internship at **ESPRIT Tech**.  
-This production-style deployment uses **LangChain / LangGraph** for multi-agent orchestration, **Milvus** as the vector database, **vLLM** for local LLM inference (GPU-accelerated), and **Chainlit** for an interactive text/voice UI. The system supports PDF/DOCX uploads, hybrid search + reranking, web search tools, and multi-agent workflows.
+This production-style deployment uses **LangChain / LangGraph** for multi-agent orchestration, **Milvus** as the vector database, **vLLM** for local LLM inference (GPU-accelerated), and **Chainlit** for an interactive text/voice UI. The system supports PDF/DOCX uploads, hybrid search + reranking, web search tools, and multi-agent workflows.  
 
----
+---  
 
-## Key features
+## Key features  
 
-- **Multi-agent orchestration** (LangChain + LangGraph) with specialized agents: CV analyzer, cover-letter generator, job matcher, web-search agent, orchestrator.
-- **Retrieval (hybrid search)** combining sparse + dense retrieval and a reranker to improve relevance for long documents.
-- **Vector DB:** Milvus for scalable vector storage and retrieval.
-- **Local/accelerated inference:** vLLM + CUDA/RTX support for low-latency LLM calls (optional remote LLMs also supported).
-- **Interactive UI:** Chainlit-based web app with text + voice I/O, PDF/DOCX upload, and session history.
-- **Deployment-ready:** Docker Compose orchestration (GPU-aware) for multi-container deployment (API, worker, Milvus, vLLM).
-- **Tooling:** Web search integration (for up-to-date query augmentation), PDF parsing, prompt/context engineering.
+- **Multi-agent orchestration** (LangChain + LangGraph) with specialized agents: CV analyzer, cover-letter generator, job matcher, web-search agent, orchestrator.  
+- **Retrieval (hybrid search)** combining sparse + dense retrieval and a reranker to improve relevance for long documents.  
+- **Vector DB:** Milvus for scalable vector storage and retrieval.  
+- **Local/accelerated inference:** vLLM + CUDA/RTX support for low-latency LLM calls (optional remote LLMs also supported).  
+- **Interactive UI:** Chainlit-based web app with text + voice I/O, PDF/DOCX upload, and session history.  
+- **Deployment-ready:** Docker Compose orchestration (GPU-aware) for multi-container deployment (API, worker, Milvus, vLLM).  
+- **Tooling:** Web search integration (for up-to-date query augmentation), PDF parsing, prompt/context engineering.  
 
----
+---  
 
-## Tech stack (short)
+## Tech stack (short)  
 
 **Orchestration / RAG:** LangChain, LangGraph, hybrid search, reranker  
 **Vector DB:** Milvus  
